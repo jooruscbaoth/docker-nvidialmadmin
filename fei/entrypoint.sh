@@ -32,7 +32,7 @@ PRINT_LOGO
 PRINT_LINEBREAK
 
 # to help users determine their LMHostID
-lmutil lmhostid
+#lmutil lmhostid
 
 #visual breakup
 PRINT_LINEBREAK
@@ -41,4 +41,5 @@ echo ""
 # forward all command line arguments to lmgrd
 # NOTE: lmgrd -z flag is required to 'Run in foreground.' so that
 #       Docker will not start sleeping regardless flags.
-lmgrd -z $@
+#lmgrd -z $@
+bash

@@ -1,0 +1,23 @@
+version: "3.3"
+
+services:
+  flexlm:
+    build:
+      context: ./fei/
+    container_name: fei-flexnetserver
+#    hostname: ${HOSTNAME}
+#    mac_address: ${MACADDRESS}
+#    volumes:
+#      - ./distrib/license.dat:/usr/local/flexlm/licenses/license.dat:ro
+    ports:
+      - 8090:8090
+      - 27000-27009:27000-27009
+#    secrets:
+#      - amira-avizo_license_2020.3
+    deploy:
+      mode: replicated
+      replicas: 1
+
+#secrets:
+#  amira-avizo_license_2020.3:
+#    external: true

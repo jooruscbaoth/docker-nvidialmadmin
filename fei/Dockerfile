@@ -1,49 +1,56 @@
-FROM centos:centos6
+FROM centos:centos7
 
 #########################################
 ##        BUILD-TIME VARIABLES        ##
 #########################################
 # url for Network Licence Manager
-ARG NLM_URL=https://knowledge.autodesk.com/sites/default/files/file_downloads/nlm11.16.2.0_ipv4_ipv6_linux64.tar.gz
+ARG FLEXLM_URL=https://download.amira-avizo-software.com/private/LICENSING/FLEXnet/11.14.0.0/flexnet-server_11.14.0.0_linux-x64-gcc44.tar.gz
 # path for temporary files
-ARG TEMP_PATH=/tmp/flexnetserver
+ARG TEMP_PATH=/tmp/flexnetserver/
 
 #########################################
 ##        ENVIRONMENTAL CONFIG         ##
 #########################################
 # add the flexlm commands to $PATH
-ENV PATH="$PATH:/opt/flexnetserver/"
+ENV PATH="$PATH:/opt/FNPLicenseServerManager/"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/FNPLicenseServerManager/"
 
 #########################################
 ##         RUN INSTALL SCRIPT          ##
 #########################################
-COPY /files /usr/local/bin
+#COPY *.sh /usr/local/bin/
+COPY silent.properties "${TEMP_PATH}FlexNetLmadminInstaller/installer.properties"
 
-RUN yum install -y redhat-lsb-core-4.0 wget-1.12 && yum clean all
+RUN yum install -y redhat-lsb-core.i686 wget && yum clean all
 
 WORKDIR $TEMP_PATH
-RUN wget --progress=bar:force -- $NLM_URL
+RUN wget --progress=bar:force -- $FLEXLM_URL
 RUN tar -zxvf ./*.tar.gz
-RUN rpm -vhi ./*.rpm
-RUN rm -rf $TEMP_PATH
+RUN FlexNetLicenseServerTools/install_fnp.sh ./FlexNetLicenseServerTools/FNPLicensingService/FNPLicensingService
+#RUN rm -rf $TEMP_PATH
 
 # lmadmin is required for -2 -p flag support
 RUN groupadd -r lmadmin && \
     useradd -r -g lmadmin lmadmin
 
+RUN ./FlexNetLmadminInstaller/lmadmin-i86_lsb-11_14_0_0.bin 
+RUN chown -R lmadmin:lmadmin /opt/FNPLicenseServerManager/
+RUN chmod +x /opt/FNPLicenseServerManager/lmadmin
+
 #########################################
 ##              VOLUMES                ##
 #########################################
-VOLUME ["/var/flexlm"]
+#VOLUME ["/var/flexlm"]
 
 #########################################
 ##            EXPOSE PORTS             ##
 #########################################
-EXPOSE 2080
+EXPOSE 8090
 EXPOSE 27000-27009
 
 # do not use ROOT user
 USER lmadmin
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+#ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD /opt/FNPLicenseServerManager/lmadmin -foreground
 # no CMD, use container as if 'lmgrd'
